@@ -228,7 +228,7 @@ dim_provider ——— fact_claims ——— dim_diagnosis
 
 Live Dashboard: [Healthcare Claims Analytics Dashboard](<YOUR LOOKER STUDIO LINK>)
 
-![Dashboard](dashboard/screenshots/dashboard_final.png)
+![Dashboard](dashboard/screenshots/Dashboard.png)
 
 ---
 
