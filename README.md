@@ -228,7 +228,7 @@ dim_provider ——— fact_claims ——— dim_diagnosis
 
 Live Dashboard: [Healthcare Claims Analytics Dashboard](<YOUR LOOKER STUDIO LINK>)
 
-![Dashboard](dashboard/screenshots/dashboard_final.png)
+![Dashboard](dashboard/screenshots/Dashboard.png)
 
 ---
 
@@ -286,11 +286,8 @@ Open `localhost:8080` → trigger `healthcare_claims_pipeline` DAG
 
 ## 🚀 Future Improvements
 
-- [ ] Add **streaming ingestion with Kafka** for real-time claims processing
 - [ ] Implement **dbt** for SQL transformation layer with lineage
 - [ ] Add **Great Expectations** for advanced data quality framework
-- [ ] Deploy Airflow on **Cloud Composer** (managed GCP)
-- [ ] Add **patient readmission risk scoring** model served via FastAPI
 - [ ] Add **GitHub Actions CI/CD** — auto quality checks on every push
 
 ---
