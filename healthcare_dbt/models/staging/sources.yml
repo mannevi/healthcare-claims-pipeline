@@ -12,7 +12,8 @@ sources:
     tables:
       - name: claims_raw
         description: "Raw Medicare inpatient claims - 197 original CMS columns"
-        loaded_at_field: CLM_FROM_DT
+        config:
+          loaded_at_field: CLM_FROM_DT
 
       - name: icd_codes_raw
         description: "ICD-10 diagnosis code reference table - 71,704 codes"
