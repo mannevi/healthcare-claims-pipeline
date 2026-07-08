@@ -1,9 +1,10 @@
 # 🏥 Healthcare Claims Analytics Pipeline
 
-> End-to-end data pipeline — processing **58,066 raw Medicare claims**  
-> into business-ready BigQuery insights with automated quality checks.
+> End-to-end data pipeline processing **58,066 real Medicare claims**  
+> through a medallion architecture — GCS bronze → dbt transformation → BigQuery → Looker Studio.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![dbt](https://img.shields.io/badge/dbt-Transformations-FF694B?logo=dbt&logoColor=white)
 ![BigQuery](https://img.shields.io/badge/BigQuery-Data%20Warehouse-4285F4?logo=googlebigquery&logoColor=white)
 ![GCS](https://img.shields.io/badge/GCS-Data%20Lake-FBBC04?logo=googlecloud&logoColor=white)
 ![Airflow](https://img.shields.io/badge/Airflow-Orchestration-017CEE?logo=apacheairflow&logoColor=white)
@@ -11,107 +12,94 @@
 ![Looker Studio](https://img.shields.io/badge/Looker%20Studio-Dashboard-4285F4?logo=googleanalytics&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
 
+---
+
 ## 📋 Project Overview
 
-A **production-style healthcare data pipeline** that processes real CMS Medicare 
-inpatient claims data — the same type of data processed daily by payers like 
-CVS Health, Aetna, and UnitedHealth Group.
+A production-style healthcare data pipeline built around the same problem US payers like CVS Health, Aetna, and UnitedHealth Group solve daily — making raw claims data analytics-ready.
 
 | | |
 |---|---|
 | 📦 **Raw Data** | 58,066 Medicare inpatient claims — CMS public dataset |
-| ⚡ **Processed** | 19,957 rows after deduplication and quality filtering |
-| ☁️ **Warehouse** | BigQuery — star schema with 4 tables |
-| 🔧 **Transformed** | Python ETL — 6-step transformation pipeline |
-| 🎛️ **Orchestrated** | Apache Airflow — 5-task DAG, runs @daily |
-| 🐳 **Containerized** | Docker — runs identically on any machine |
+| ☁️ **Bronze Layer** | Google Cloud Storage — raw CSV untouched |
+| 🔧 **Transformation** | dbt — 6 models across staging, intermediate, and mart layers |
+| 🏗️ **Warehouse** | BigQuery — 3 mart tables + 2 staging views + 1 intermediate view |
+| 🎛️ **Orchestration** | Apache Airflow — 6-task DAG running @daily |
+| 📊 **Dashboard** | Looker Studio — live connected to BigQuery mart tables |
 
-> Built to simulate a real-world healthcare claims analytics pipeline —  
-> from raw government data to business-ready insights in BigQuery.
+---
 
-## 🎯 Business Objective
+## 🎯 Business Problem
 
-### Problem
-Healthcare payers process millions of claims daily with no standardized way 
-to analyze costs, identify high-risk diagnoses, or track spending trends 
-across states and providers.
+Healthcare payers process millions of claims daily but struggle to answer basic questions:
+- Which states have the highest claim volumes?
+- Which diagnoses cost the most?
+- How is Medicare spend trending over time?
+- Which providers are charging significantly above average?
 
-### Solution
-This pipeline ingests, processes, and analyzes **real Medicare claims** 
-to answer four key business questions:
-
-| # | Business Question | Answered By |
-|---|-------------------|-------------|
-| 💸 | What is the total and average Medicare claim cost? | KPI Scorecards |
-| 🗺️ | Which states have the highest claim volumes? | Claims by State chart |
-| 🏥 | What are the most common diagnosis codes? | Top 10 Diagnosis chart |
-| 📈 | How has Medicare spending trended over time? | Monthly Cost Trend |
+This pipeline answers all of them.
 
 ### Key Findings
+
 | Insight | Value |
 |---------|-------|
-| 🏆 Total Medicare spend | **$119.58M** across 19,957 claims |
-| 💰 Average cost per claim | **$5,991.72** |
-| 🗺️ Highest claim state | **Florida** — 1,900+ claims |
-| 🔬 Most common diagnosis | **Z733** — 3,000+ claims |
-| 📈 Cost trend | Consistent upward trend 2015 → 2022 |
+| Total Medicare spend | **$119.58M** across 19,957 unique claims |
+| Average cost per claim | **$5,991.72** |
+| Highest claim state | **Florida** |
+| Most common diagnosis | **Z733** — Problems related to life-management difficulty |
+| Cost trend | Consistent upward trend 2015 → 2022 |
+
+---
 
 ## 🛠️ Tech Stack
 
-| Tool | Role in This Project |
-|------|----------------------|
-| **Python 3.11** | Core pipeline language — ETL scripts |
-| **pandas** | Data cleaning, transformation, deduplication |
-| **Google Cloud Storage** | Raw data lake — bronze layer landing zone |
-| **BigQuery** | Cloud data warehouse — star schema |
-| **Apache Airflow** | Orchestrates 5-task DAG end-to-end (@daily) |
+| Tool | Role |
+|------|------|
+| **Python 3.11** | Ingestion scripts — extract, upload, raw load |
+| **Google Cloud Storage** | Bronze layer — raw data landing zone |
+| **BigQuery** | Data warehouse — raw + analytics datasets |
+| **dbt Core** | SQL transformation — staging, intermediate, marts |
+| **Apache Airflow** | Pipeline orchestration — 6-task DAG |
 | **Docker** | Containerizes Airflow environment |
-| **Looker Studio** | Live business dashboard connected to BigQuery |
-| **CMS Open Data** | Real Medicare inpatient claims (public dataset) |
-| **ICD-10 Reference** | Diagnosis code descriptions (cms.gov) |
+| **Looker Studio** | Business dashboard connected to mart tables |
 
-## 🏗️ Pipeline Architecture
+---
 
-```mermaid
-flowchart TD
-    subgraph INGEST["📥 Step 1 — Extraction"]
-        A["🏥 CMS Medicare Claims\n58,066 rows · Pipe-separated CSV"]
-        B["🔬 ICD-10 Code Reference\n71,704 codes · Live URL pull"]
-    end
+## 🏗️ Architecture
 
-    subgraph LAKE["☁️ Step 2 — GCS Data Lake"]
-        C["Raw Zone\nraw/claims/claims_raw.csv"]
-        Q["Quarantine Zone\nfailed_<check_name>.csv"]
-    end
-
-    subgraph PROCESS["⚡ Step 3 — Python ETL"]
-        E["Select 13 columns from 197\nRename → business-friendly names\nMap state codes → state names\nFill nulls · Fix data types\nRemove 35,268 duplicates\nJoin ICD-10 descriptions"]
-    end
-
-    subgraph QUALITY["✅ Step 4 — Data Quality · 6 Automated Checks"]
-        QC["no_null_claim_id · no_null_patient_id\nno_duplicate_claims · no_negative_amounts\nno_null_diagnosis · no_empty_dates"]
-    end
-
-    subgraph WAREHOUSE["🏗️ Step 5 — BigQuery Star Schema"]
-        G["dim_patient · dim_provider\ndim_diagnosis · fact_claims"]
-    end
-
-    subgraph INSIGHT["📊 Step 6 — Business Insights"]
-        I["Claims by State · Top 10 Diagnoses\nMonthly Cost Trend · KPI Scorecards"]
-    end
-
-    A --> C
-    B --> E
-    C --> E
-    E --> QC
-    QC -->|pass| G
-    QC -->|fail| Q
-    G --> I
 ```
+CMS Claims CSV + ICD-10 Codes
+          ↓
+    Python Ingestion
+          ↓
+   GCS Bronze Layer
+   (raw/claims/ · raw/icd10/)
+          ↓
+  BigQuery RAW Dataset
+  (healthcare_raw)
+          ↓
+       dbt Run
+  ┌─────────────────────────────┐
+  │  staging/                   │
+  │    stg_claims (view)        │
+  │    stg_icd_codes (view)     │
+  │                             │
+  │  intermediate/              │
+  │    int_claims_dedup (view)  │
+  │                             │
+  │  marts/                     │
+  │    mart_claims_summary      │
+  │    mart_provider_perf       │
+  │    mart_diagnosis_cost      │
+  └─────────────────────────────┘
+          ↓
+  BigQuery Analytics Dataset
+  (healthcare_analytics)
+          ↓
+    Looker Studio Dashboard
 
-> 🎛️ **Orchestrated by Apache Airflow** — 5-task DAG running `@daily`  
-> 🐳 **Containerized with Docker** — Airflow runs identically on any machine  
-> 🔒 **HIPAA-aware** — PHI identifiers handled with deterministic hashing pattern
+  Airflow orchestrates all steps @daily
+```
 
 ---
 
@@ -120,182 +108,159 @@ flowchart TD
 ```
 healthcare-claims-pipeline/
 ├── ingestion/
-│   ├── extract.py                ← reads claims CSV + ICD-10 from URL
-│   └── upload_to_gcs.py          ← uploads raw CSV to GCS bronze zone
+│   ├── extract.py                 ← reads claims CSV + ICD-10 from URL
+│   └── upload_to_gcs.py           ← uploads both files to GCS bronze zone
 ├── transform/
-│   ├── transform.py              ← 6-step cleaning + star schema split
-│   ├── load.py                   ← loads all 4 tables into BigQuery
-│   └── quality_checks.py         ← 6 automated checks + quarantine
+│   └── quality_checks.py          ← file-level pipeline quality checks
+├── healthcare_dbt/
+│   └── models/
+│       ├── staging/
+│       │   ├── sources.yml        ← defines healthcare_raw source tables
+│       │   ├── stg_claims.sql     ← renames 197 CMS columns → 13 clean names
+│       │   └── stg_icd_codes.sql  ← cleans ICD-10 reference codes
+│       ├── intermediate/
+│       │   └── int_claims_deduplicated.sql ← ROW_NUMBER() deduplication
+│       ├── marts/
+│       │   ├── mart_claims_summary.sql         ← monthly spend by state
+│       │   ├── mart_provider_performance.sql   ← provider cost analysis
+│       │   └── mart_diagnosis_cost_analysis.sql ← cost per diagnosis
+│       └── schema.yml             ← dbt tests — 11 checks across all models
 ├── airflow/
-│   └── dags/
-│       └── claims_pipeline_dag.py ← 5-task Airflow DAG
+│   └── dags/claims_pipeline_dag.py ← 6-task Airflow DAG with dbt
 ├── sql/
-│   └── create_tables.sql         ← BigQuery DDL — star schema
-├── dashboard/
-│   └── screenshots/              ← pipeline + dashboard screenshots
-├── docs/
-│   └── architecture.png
-├── docker-compose.yml            ← Airflow multi-service setup
+│   └── create_tables.sql          ← original star schema DDL
+├── archive/
+│   ├── transform_v1.py            ← original Python ETL (replaced by dbt)
+│   └── load_v1.py                 ← original load script (replaced by dbt run)
+├── dashboard/screenshots/         ← pipeline + dashboard screenshots
+├── docker-compose.yml             ← Airflow multi-service setup
 ├── requirements.txt
 └── README.md
 ```
 
+---
+
 ## 🌐 Data Sources
 
-### 1. CMS Medicare Inpatient Claims
-| Field | Detail |
-|-------|--------|
-| **Source** | Centers for Medicare & Medicaid Services (CMS) |
-| **URL** | https://data.cms.gov |
-| **Format** | Pipe-separated CSV |
-| **Raw Size** | 58,066 rows · 197 columns |
-| **Processed** | 19,957 rows after deduplication |
-| **License** | Public domain — CMS open data |
-
-### 2. ICD-10 Diagnosis Code Reference
-| Field | Detail |
-|-------|--------|
-| **Source** | GitHub — k4m1113/ICD-10-CSV |
-| **URL** | Pulled live via URL in extract.py |
-| **Records** | 71,704 diagnosis codes with descriptions |
-| **Auth** | None — completely free |
+| Source | Detail |
+|--------|--------|
+| **CMS Medicare Claims** | data.cms.gov — pipe-separated CSV — 58,066 rows · 197 columns |
+| **ICD-10 Reference** | github.com/k4m1113/ICD-10-CSV — 71,704 codes pulled live via URL |
 
 ---
 
 ## 🔄 Pipeline Steps
 
 ### Step 1 — Extract
-- Reads 58,066 Medicare claims from pipe-separated CSV
-- Pulls 71,704 ICD-10 codes live from URL
-- Two sources — two ingestion patterns
+Reads raw claims from local CSV and pulls ICD-10 codes live from URL.
 
 ### Step 2 — Upload to GCS
-- Uploads raw claims CSV to GCS bronze zone untouched
-- Preserves raw data for audit, reprocessing, and recovery
-- Quarantine folder captures failed quality records
+Uploads both files to GCS bronze zone untouched — preserves raw data for audit and recovery.
 
-### Step 3 — Transform
-- Selects 13 business-relevant columns from 197
-- Renames CMS codes to business-friendly names
-- Maps numeric state codes to full state names (e.g. `1` → `Alabama`)
-- Fills nulls, fixes data types, removes 35,268 duplicate claims
-- Joins ICD-10 descriptions to diagnosis codes
-- Splits into 4 tables: `fact_claims`, `dim_patient`, `dim_provider`, `dim_diagnosis`
+### Step 3 — Load Raw to BigQuery
+BigQuery native `LOAD DATA` reads directly from GCS into `healthcare_raw` dataset.
 
-### Step 4 — Data Quality
-6 automated checks run before every load:
+### Step 4 — Quality Checks
+File-level checks confirm raw file exists in GCS. Pipeline aborts if checks fail.
 
-| Check | Rule |
-|-------|------|
-| `no_null_claim_id` | Every claim must have an ID |
-| `no_null_patient_id` | Every claim must link to a patient |
-| `no_duplicate_claims` | Claim IDs must be unique |
-| `no_negative_amounts` | Claim amounts must be ≥ 0 |
-| `no_null_diagnosis` | Every claim must have a diagnosis code |
-| `no_empty_dates` | Claim dates must be populated |
+### Step 5 — dbt Run
+Runs all 6 models in dependency order automatically:
 
-Failed records saved to `gs://bucket/quarantine/failed_<check_name>.csv`
+| Model | Type | Purpose |
+|-------|------|---------|
+| `stg_claims` | view | Rename + cast 197 CMS columns → 13 clean names |
+| `stg_icd_codes` | view | Clean ICD-10 reference codes |
+| `int_claims_deduplicated` | view | Remove 35,268 duplicates via ROW_NUMBER() |
+| `mart_claims_summary` | table | Monthly spend by state and diagnosis |
+| `mart_provider_performance` | table | Provider-level cost and payment ratio |
+| `mart_diagnosis_cost_analysis` | table | Cost per diagnosis for value-based care |
 
-![Quality Checks Passing](dashboard/screenshots/quality_checks.png)
-### Step 5 — Load to BigQuery
-- Dimensions loaded first (referential integrity)
-- Fact table loaded last
-- `WRITE_TRUNCATE` — idempotent loads on every run
+### Step 6 — dbt Test
+11 automated tests run after every model run — pipeline fails if any test fails.
 
-![Airflow DAG Success](dashboard/screenshots/airflow_dag.png)
----
-
-## 📊 Data Model — Star Schema
-
-```
-                    dim_patient
-                    (5,574 rows)
-                         |
-dim_provider ——— fact_claims ——— dim_diagnosis
-(4,876 rows)    (19,957 rows)    (189 rows)
-```
-
-| Table | Rows | Key Columns |
-|-------|------|-------------|
-| `fact_claims` | 19,957 | claim_id, patient_id, provider_id, diagnosis_code, claim_amount, total_charges, dates |
-| `dim_patient` | 5,574 | patient_id, state, discharge_status, admission_type |
-| `dim_provider` | 4,876 | provider_id, provider_state, npi_number |
-| `dim_diagnosis` | 189 | diagnosis_code, description |
+| Test | Model | Rule |
+|------|-------|------|
+| not_null | stg_claims | claim_id, patient_id, provider_id, claim_amount |
+| unique + not_null | int_claims_deduplicated | claim_id must be unique |
+| not_null | mart_claims_summary | claim_month, total_claims, total_paid |
+| not_null | mart_provider_performance | provider_id |
+| not_null | mart_diagnosis_cost_analysis | diagnosis_code |
 
 ---
 
-## 📊 Analytics Dashboard
+## 📊 Dashboard
 
 Live Dashboard: [Healthcare Claims Analytics Dashboard](<YOUR LOOKER STUDIO LINK>)
 
 ![Dashboard](dashboard/screenshots/Dashboard.png)
+
+![Airflow DAG](dashboard/screenshots/airflow_dag.png)
+
+![dbt Lineage](dashboard/screenshots/dbt_lineage_graph.png)
 
 ---
 
 ## ▶️ How to Run
 
 ### Prerequisites
-- GCP account with BigQuery + GCS enabled
-- Service account key saved as `gcp-key.json`
+- GCP account with BigQuery + GCS APIs enabled
+- Service account key saved as `gcp-key.json` in project root
 - Python 3.11 + Docker Desktop
 
-### Step by Step
+### Run Locally
 
-**1. Clone the repository**
 ```bash
 git clone https://github.com/mannevi/healthcare-claims-pipeline.git
 cd healthcare-claims-pipeline
-```
 
-**2. Install dependencies**
-```bash
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
-```
 
-**3. Run pipeline**
-```bash
 python ingestion/upload_to_gcs.py
-python -m transform.quality_checks
-python -m transform.load
+
+cd healthcare_dbt
+dbt run
+dbt test
 ```
 
-**4. Run via Airflow**
+### Run via Airflow
+
 ```bash
 docker-compose up airflow-init
 docker-compose up airflow-webserver airflow-scheduler
 ```
-Open `localhost:8080` → trigger `healthcare_claims_pipeline` DAG
+
+Open `localhost:8080` → trigger `healthcare_claims_pipeline` DAG.
 
 ---
 
-## 🧠 What I Built & Learned
+## 🧠 What I Built and Learned
 
-| Challenge | How I Solved It |
-|-----------|-----------------|
-| 197 columns in raw data | Selected only 13 business-relevant columns based on dashboard requirements |
-| Pipe-separated CMS format | Used `sep='|'` and `low_memory=False` in pandas read |
-| Numeric state codes | Built SSA state code mapping dictionary (1→Alabama etc.) |
-| Duplicate claims in raw data | Deduplication on claim_id removed 35,268 duplicates |
-| ICD-10 codes not human readable | Joined 71,704 code descriptions from reference table |
-| Bad data reaching warehouse | 6 quality gates with quarantine folder — load blocked on failure |
+| Challenge | Solution |
+|-----------|----------|
+| 197 columns in raw CMS data | Selected 13 business-relevant columns in dbt staging |
+| 35,268 duplicate claims | `ROW_NUMBER() OVER (PARTITION BY claim_id)` in intermediate model |
+| Numeric state codes (1, 2, 3...) | SSA state code mapping dictionary in Python ingestion |
+| ICD-10 codes not human-readable | Joined 71,704 descriptions in mart models |
+| Bad data reaching warehouse | 11 dbt tests + file-level Python checks |
+| SQL transformation maintainability | dbt `{{ ref() }}` — dependency graph auto-resolves run order |
 | Credentials security | `gcp-key.json` in `.gitignore` — never pushed to GitHub |
 
 ---
 
 ## 🚀 Future Improvements
 
-- [ ] Implement **dbt** for SQL transformation layer with lineage
-- [ ] Add **Great Expectations** for advanced data quality framework
-- [ ] Add **GitHub Actions CI/CD** — auto quality checks on every push
+- [ ] Connect **dbt Cloud** for managed scheduling and hosted lineage documentation
+- [ ] Add **incremental dbt models** — currently full refresh on every run
+- [ ] Add **source freshness checks** for real-time data monitoring
 
 ---
 
 ## 👩‍💻 Author
 
 **Manne Vaishnavi**  
-MS in Computer Science  
+MS in Computer Science
 
 [![GitHub](https://img.shields.io/badge/GitHub-mannevi-181717?logo=github)](https://github.com/mannevi)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-vaishnavimanne-0A66C2?logo=linkedin)](https://www.linkedin.com/in/vaishnavimanne/)
