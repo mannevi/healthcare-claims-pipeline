@@ -21,10 +21,10 @@ def download_icd10():
 
 if __name__ == "__main__":
     # Upload claims
-      # upload_file_to_gcs(
-      #  local_path="data/claims_raw.csv",
-        # gcs_path="raw/claims/claims_raw.csv"
-      #)
+    upload_file_to_gcs(
+        local_path="data/claims_raw.csv",
+        gcs_path="raw/claims/claims_raw.csv"
+    )
 
     # Download ICD-10 then upload
     download_icd10()

@@ -1,0 +1,29 @@
+[0m17:39:05.185237 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002297F754750>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002297F752F10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002297F751AD0>]}
+
+
+============================== 17:39:05.185237 | 0b4dab93-b689-4057-9616-b0b3291b314e ==============================
+[0m17:39:05.185237 [info ] [MainThread]: Running with dbt=1.11.12
+[0m17:39:05.185237 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'no_print': 'None', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'printer_width': '80', 'write_json': 'True', 'empty': 'None', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'log_format': 'default', 'debug': 'False', 'fail_fast': 'False', 'profiles_dir': 'C:\\Users\\Mannevaishnavi\\.dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'indirect_selection': 'eager', 'use_colors': 'True', 'invocation_command': 'dbt init healthcare_dbt', 'use_experimental_parser': 'False', 'log_path': 'logs'}
+[0m17:39:05.214321 [debug] [MainThread]: Starter project path: C:\Users\Mannevaishnavi\Documents\DataEngineer\project5\healthcare-claims-pipeline\venv\Lib\site-packages\dbt\include\starter_project
+[0m17:39:05.341729 [info ] [MainThread]: 
+Your new dbt project "healthcare_dbt" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m17:39:05.341729 [info ] [MainThread]: Setting up your profile.
+[0m18:05:05.638234 [info ] [MainThread]: Profile healthcare_dbt written to C:\Users\Mannevaishnavi\.dbt\profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m18:05:05.638234 [debug] [MainThread]: Command `dbt init` succeeded at 18:05:05.638234 after 1560.62 seconds
+[0m18:05:05.638234 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022978BACF90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002297F401B50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000022978B2C7D0>]}
+[0m18:05:05.638234 [debug] [MainThread]: Flushing usage events
+[0m18:05:06.519076 [debug] [MainThread]: An error was encountered while trying to flush usage events
