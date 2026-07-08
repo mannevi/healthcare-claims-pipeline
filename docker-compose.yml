@@ -16,6 +16,7 @@ x-airflow-common:
     - ./transform:/opt/airflow/transform
     - ./data:/opt/airflow/data
     - ./gcp-key.json:/opt/airflow/gcp-key.json
+    - ./healthcare_dbt:/opt/airflow/healthcare_dbt
   depends_on:
     postgres:
       condition: service_healthy
