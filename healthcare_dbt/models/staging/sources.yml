@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: healthcare_raw
+    database: healthcare-claims-cvs
+    schema: healthcare_raw
+    description: "Raw CMS Medicare claims data loaded from GCS"
+    freshness:
+      warn_after:
+        count: 24
+        period: hour
+    tables:
+      - name: claims_raw
+        description: "Raw Medicare inpatient claims - 197 original CMS columns"
+        loaded_at_field: CLM_FROM_DT
+
+      - name: icd_codes_raw
+        description: "ICD-10 diagnosis code reference table - 71,704 codes"

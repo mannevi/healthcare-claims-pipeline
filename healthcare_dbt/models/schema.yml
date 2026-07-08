@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_claims
+    description: "Cleaned and renamed Medicare claims from raw CMS data"
+    columns:
+      - name: claim_id
+        description: "Unique claim identifier"
+        tests:
+          - not_null
+      - name: patient_id
+        description: "Patient identifier"
+        tests:
+          - not_null
+      - name: provider_id
+        description: "Provider identifier"
+        tests:
+          - not_null
+      - name: claim_amount
+        description: "Amount paid by Medicare"
+        tests:
+          - not_null
+
+  - name: int_claims_deduplicated
+    description: "Deduplicated claims using ROW_NUMBER window function"
+    columns:
+      - name: claim_id
+        description: "Unique claim identifier - no duplicates"
+        tests:
+          - unique
+          - not_null
+
+  - name: mart_claims_summary
+    description: "Monthly claims summary by state and diagnosis"
+    columns:
+      - name: claim_month
+        description: "Month of claim in YYYY-MM format"
+        tests:
+          - not_null
+      - name: total_claims
+        description: "Total number of claims"
+        tests:
+          - not_null
+      - name: total_paid
+        description: "Total amount paid by Medicare"
+        tests:
+          - not_null
+
+  - name: mart_provider_performance
+    description: "Provider-level cost and performance analysis"
+    columns:
+      - name: provider_id
+        description: "Provider identifier"
+        tests:
+          - not_null
+
+  - name: mart_diagnosis_cost_analysis
+    description: "Cost analysis by diagnosis code"
+    columns:
+      - name: diagnosis_code
+        description: "ICD-10 diagnosis code"
+        tests:
+          - not_null
