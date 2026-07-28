@@ -11,12 +11,15 @@ somehow failed, these credentials physically cannot write or delete data.
 
 import os
 import re
+import json
+import streamlit as st
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from schema_context import ALLOWED_TABLES
 
-# Path to the read-only service account key (never committed to git -
-# see nl_sql_analyst/credentials/ in .gitignore)
+# Path to the read-only service account key, used only for LOCAL development.
+# When deployed on Streamlit Community Cloud, this file won't exist -
+# credentials come from st.secrets instead (see get_client() below).
 CREDENTIALS_PATH = os.path.join(
     os.path.dirname(__file__), "..", "credentials", "bigquery-key.json"
 )
@@ -32,16 +35,28 @@ class QueryExecutionError(Exception):
 
 
 def get_client() -> bigquery.Client:
-    """Builds a BigQuery client authenticated with the read-only service account."""
-    credentials = service_account.Credentials.from_service_account_file(
-        CREDENTIALS_PATH,
-        # Note: this scope is broader than "readonly", but that's expected -
-        # BigQuery requires this scope just to create a query job at all.
-        # The actual read-only restriction is enforced separately by the
-        # BigQuery Data Viewer IAM role assigned to this service account,
-        # not by this scope. This account still cannot write or delete data.
-        scopes=["https://www.googleapis.com/auth/bigquery"],
-    )
+    """
+    Builds a BigQuery client authenticated with the read-only service account.
+
+    Checks Streamlit secrets first (used when deployed on Streamlit Community
+    Cloud), and falls back to the local JSON key file (used for local
+    development, where st.secrets isn't configured).
+    """
+    scopes = ["https://www.googleapis.com/auth/bigquery"]
+
+    if "gcp_service_account" in st.secrets:
+        # Deployed environment: credentials come from Streamlit secrets,
+        # stored as a TOML-parsed dict, not a file on disk.
+        credentials_info = dict(st.secrets["gcp_service_account"])
+        credentials = service_account.Credentials.from_service_account_info(
+            credentials_info, scopes=scopes
+        )
+    else:
+        # Local development: read from the gitignored local JSON key file.
+        credentials = service_account.Credentials.from_service_account_file(
+            CREDENTIALS_PATH, scopes=scopes
+        )
+
     return bigquery.Client(credentials=credentials, project=PROJECT_ID)
 
 

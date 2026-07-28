@@ -10,13 +10,17 @@ Demonstrates:
 """
 
 import os
+import streamlit as st
 from google import genai
 from google.genai import types
 from schema_context import build_schema_context
 from guardrails import validate_and_prepare, GuardrailViolation
 from execute_query import run_query, QueryExecutionError
 
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+# Checks Streamlit secrets first (deployed environment), falls back to the
+# local environment variable (local development).
+_api_key = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY"))
+client = genai.Client(api_key=_api_key)
 
 SYSTEM_PROMPT_TEMPLATE = """You are a SQL analyst for a Medicare healthcare claims database on BigQuery.
 
