@@ -6,10 +6,14 @@ icd AS (
     SELECT * FROM {{ ref('stg_icd_codes') }}
 ),
 
+states AS (
+    SELECT * FROM {{ ref('state_codes') }}
+),
+
 final AS (
     SELECT
         SUBSTR(c.claim_from_date, 1, 7)     AS claim_month,
-        c.provider_state_code                AS state,
+        COALESCE(s.state_name, 'Unknown')    AS state,
         c.diagnosis_code,
         i.diagnosis_description,
         i.diagnosis_category,
@@ -21,6 +25,8 @@ final AS (
     FROM claims c
     LEFT JOIN icd i
         ON c.diagnosis_code = i.diagnosis_code
+    LEFT JOIN states s
+        ON SAFE_CAST(c.provider_state_code AS INT64) = s.state_code
     GROUP BY 1, 2, 3, 4, 5
 )
 

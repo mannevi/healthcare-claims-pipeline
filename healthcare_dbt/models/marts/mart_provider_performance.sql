@@ -2,11 +2,15 @@ WITH claims AS (
     SELECT * FROM {{ ref('int_claims_deduplicated') }}
 ),
 
+states AS (
+    SELECT * FROM {{ ref('state_codes') }}
+),
+
 final AS (
     SELECT
         provider_id,
         npi_number,
-        provider_state_code                     AS provider_state,
+        COALESCE(s.state_name, 'Unknown')       AS provider_state,
         COUNT(claim_id)                         AS total_claims,
         SUM(claim_amount)                       AS total_paid,
         SUM(total_charges)                      AS total_charged,
@@ -18,6 +22,8 @@ final AS (
         MAX(claim_amount)                       AS max_claim,
         MIN(claim_amount)                       AS min_claim
     FROM claims
+    LEFT JOIN states s
+        ON SAFE_CAST(claims.provider_state_code AS INT64) = s.state_code
     GROUP BY 1, 2, 3
 )
 
