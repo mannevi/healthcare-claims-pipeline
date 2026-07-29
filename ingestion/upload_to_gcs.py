@@ -15,7 +15,18 @@ def upload_file_to_gcs(local_path, gcs_path):
 
 def download_icd10():
     url = "https://raw.githubusercontent.com/k4m1113/ICD-10-CSV/master/codes.csv"
-    df = pd.read_csv(url, header=None, names=['code', 'description'])
+    # Source file has 6 unnamed columns; column 3 is the real ICD-10 code.
+    # Previous version only named 2 columns, which silently shifted the
+    # real code column out and mislabeled description/category instead.
+    df = pd.read_csv(
+        url,
+        header=None,
+        names=['category_code', 'sub_code', 'icd10_code', 'short_description',
+               'long_description', 'category'],
+    )
+    df = df[['icd10_code', 'short_description', 'category']].rename(
+        columns={'icd10_code': 'code', 'short_description': 'description'}
+    )
     df.to_csv('data/icd10_codes.csv', index=False)
     print(f"Downloaded {len(df)} ICD-10 codes to data/icd10_codes.csv")
 

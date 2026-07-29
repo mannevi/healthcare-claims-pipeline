@@ -4,11 +4,11 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        TRIM(UPPER(description))  AS diagnosis_code,
-        TRIM(description)         AS diagnosis_description,
-        TRIM(category)            AS diagnosis_category
+        TRIM(UPPER(code))          AS diagnosis_code,
+        TRIM(description)          AS diagnosis_description,
+        TRIM(category)             AS diagnosis_category
     FROM source
-    WHERE description IS NOT NULL
+    WHERE code IS NOT NULL
 )
 
 SELECT * FROM renamed
