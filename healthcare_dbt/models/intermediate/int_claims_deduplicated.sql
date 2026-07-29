@@ -3,7 +3,11 @@ WITH ranked_claims AS (
         *,
         ROW_NUMBER() OVER (
             PARTITION BY claim_id
-            ORDER BY claim_from_date DESC
+            -- claim_from_date alone isn't unique when a claim has multiple
+            -- service lines on the same date - claim_line_num as a
+            -- tiebreaker makes which "representative" row gets kept a
+            -- deliberate choice (always line 1) instead of arbitrary.
+            ORDER BY claim_from_date DESC, claim_line_num ASC
         ) AS row_num
     FROM {{ ref('stg_claims') }}
 ),

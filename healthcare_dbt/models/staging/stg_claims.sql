@@ -8,6 +8,7 @@ renamed AS (
         CAST(CLM_ID AS STRING)      AS claim_id,
         CAST(BENE_ID AS STRING)     AS patient_id,
         CAST(PRVDR_NUM AS STRING)   AS provider_id,
+        CAST(CLM_LINE_NUM AS INT64) AS claim_line_num,
 
         -- Diagnosis
         CAST(PRNCPAL_DGNS_CD AS STRING)     AS diagnosis_code,
